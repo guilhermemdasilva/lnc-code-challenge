@@ -16,7 +16,7 @@ const apiCall = (apiUrl, position, field) => {
 };
 
 /* GET posts listing. */
-router.get('/', (req, res) => {
+router.get('/posts', (req, res) => {
   rp({
     url: 'https://jsonplaceholder.typicode.com/posts',
     json: true,
