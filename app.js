@@ -4,6 +4,20 @@ const favicon = require('serve-favicon');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+// Set up default mongoose connection
+const mongoDB = 'mongodb://127.0.0.1/Messages';
+mongoose.connect(mongoDB, {
+  useMongoClient: true,
+});
+// Get Mongoose to use the global promise library
+mongoose.Promise = global.Promise;
+// Get the default connection
+const db = mongoose.connection;
+
+// Bind connection to error event (to get notification of connection errors)
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const index = require('./routes/index');
 const posts = require('./routes/posts');
@@ -54,5 +68,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
+
+app.listen(8000);
 
 module.exports = app;

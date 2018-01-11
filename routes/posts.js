@@ -1,6 +1,8 @@
 const express = require('express');
 const rp = require('request-promise');
 
+const Posts = require('../models/posts');
+
 const router = express.Router();
 
 let posts = [];
@@ -36,6 +38,18 @@ router.get('/posts', (req, res) => {
     });
   }).catch((err) => {
     console.error(err);
+  });
+});
+
+/* POST posts. */
+router.post('/posts', (req, res) => {
+  let post = new Posts();
+  post = JSON.parse(req.body);
+  post.save((err) => {
+    if (err) {
+      res.send(err);
+    }
+    res.json(post);
   });
 });
 
