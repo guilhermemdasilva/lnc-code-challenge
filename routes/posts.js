@@ -1,32 +1,41 @@
 const express = require('express');
-const request = require('request');
+const rp = require('request-promise');
 
 const router = express.Router();
 
+let posts = [];
+
+const insertPosts = (response, position, field) => {
+  posts[position][field] = response;
+};
+
+const apiCall = (apiUrl, position, field) => {
+  return rp({ url: apiUrl, json: true }).then((response) => {
+    return insertPosts(response, position, field);
+  });
+};
+
 /* GET posts listing. */
 router.get('/', (req, res) => {
-  request({
+  rp({
     url: 'https://jsonplaceholder.typicode.com/posts',
     json: true,
-  }, (error, response, body) => {
-    const posts = body;
-    // iterate over the posts to add each author/user to its post
+  }).then((response) => {
+    posts = response;
+    const promises = [];
     for (let i = 0; i < posts.length; i += 1) {
-      request({
-        url: `https://jsonplaceholder.typicode.com/users/${posts[i].userId}`,
-        json: true,
-      }, (e, r, b) => {
-        posts[i].author = b.name;
-      });
+      // add each author/user to its post
+      promises.push(apiCall(`https://jsonplaceholder.typicode.com/users/${posts[i].userId}`, i, 'author'));
       // get all comments from a post and add a comment item (list) on json
-      request({
-        url: `https://jsonplaceholder.typicode.com/comments?postId=${posts[i].id}`,
-        json: true,
-      }, (e, r, b) => {
-        posts[i].comments = b;
-      });
+      promises.push(apiCall(`https://jsonplaceholder.typicode.com/comments?postId=${posts[i].id}`, i, 'comments'));
     }
-    res.send(posts);
+    Promise.all(promises).then(() => {
+      res.send(posts);
+    }).catch((err) => {
+      console.error(err);
+    });
+  }).catch((err) => {
+    console.error(err);
   });
 });
 
